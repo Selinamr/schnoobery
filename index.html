@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>schnoobery.exe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Caveat:wght@500&display=swap" rel="stylesheet">
+<style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Courier New', monospace; color: #111; min-height: 100vh; }
+
+.window { width: 100%; background: #d4d0c8; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #404040; border-bottom: 2px solid #404040; }
+.titlebar { background: linear-gradient(90deg, #000080, #1084d0); padding: 3px 6px; display: flex; align-items: center; justify-content: space-between; }
+.titlebar-title { color: #fff; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; }
+.titlebar-btns { display: flex; gap: 2px; }
+.tbtn { width: 16px; height: 14px; background: #d4d0c8; border-top: 1px solid #fff; border-left: 1px solid #fff; border-right: 1px solid #404040; border-bottom: 1px solid #404040; font-size: 0.55rem; color: #111; display: flex; align-items: center; justify-content: center; cursor: default; }
+.window-body { padding: 1.5rem 2.5rem 2rem; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+h1 { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; letter-spacing: 0.05em; }
+p { font-size: 0.82rem; line-height: 1.8; }
+.dim { color: #333; font-size: 0.78rem; line-height: 1.8; }
+.blink { animation: blink 1s step-end infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+hr { border: none; border-top: 1px solid #808080; border-bottom: 1px solid #fff; margin: 1.25rem 0; }
+
+button { cursor: pointer; }
+#s-asm button, #s-end button, #xp-win button, #xp-lose button { background: #d4d0c8; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #404040; border-bottom: 2px solid #404040; color: #111; font-family: 'Courier New', monospace; font-size: 0.78rem; padding: 0.3rem 1.1rem; cursor: pointer; margin-top: 0.75rem; }
+#s-asm button:active, #s-end button:active, #xp-win button:active, #xp-lose button:active { border-top: 2px solid #404040; border-left: 2px solid #404040; border-right: 2px solid #fff; border-bottom: 2px solid #fff; }
+
+.rct-outer { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: url('images/RCT_Screenshot.jpg') center center / cover no-repeat; display: flex; align-items: center; justify-content: center; }
+.rct-window { width: 700px; max-width: 96vw; background: #978773; outline: 1px solid #2a2510; box-shadow: 1px 1px 0 #2a2510, -1px -1px 0 #2a2510, inset 1px 1px 0 #ccc4a0, inset -1px -1px 0 #6a6050; font-family: 'VT323', monospace; font-size: 16px; }
+.rct-titlebar { background: #6a7166; color: #f0ead0; font-size: 16px; font-weight: bold; padding: 3px 0; text-align: center; border-bottom: 1px solid #2a2510; position: relative; letter-spacing: 1px; }
+.rct-titlebar-wrap { display: flex; align-items: center; justify-content: center; width: 100%; }
+.rct-titlebar-x { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); background: #978773; border: 1px solid #2a2510; box-shadow: inset 1px 1px 0 #ccc4a0, inset -1px -1px 0 #6a6050; color: #1a1800; font-size: 11px; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; cursor: default; }
+.rct-body { background: #978773; padding: 10px 12px 14px; }
+.rct-label, .rct-text { font-size: 16px; color: #1a1800; line-height: 1.5; }
+.rct-panel { background: #7a7460; box-shadow: inset 1px 1px 0 #2a2510, inset -1px -1px 0 #ccc4a0; padding: 5px 7px; margin-bottom: 6px; }
+.rct-panel .rct-text { color: #f0ead0; }
+.rct-divider { border: none; border-top: 1px solid #6a6050; border-bottom: 1px solid #ccc4a0; margin: 6px 0; }
+.rct-pre { background: #7a7460; box-shadow: inset 1px 1px 0 #2a2510, inset -1px -1px 0 #ccc4a0; padding: 6px 8px; font-size: 14px; color: #f0ead0; line-height: 1.5; overflow-x: hidden; margin: 5px 0; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-all; }
+.rct-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+.rct-input { background: #b8b090; box-shadow: inset 1px 1px 0 #2a2510, inset -1px -1px 0 #ccc4a0; border: none; outline: none; color: #1a1800; font-family: 'VT323', monospace; font-size: 16px; width: 120px; line-height: 20px; padding: 0 4px; }
+.rct-input:empty:before { content: attr(data-placeholder); color: #8a7a60; }
+.rct-btn { background: #978773; box-shadow: inset 1px 1px 0 #ccc4a0, inset -1px -1px 0 #2a2510; border: 1px solid #2a2510; color: #1a1800; font-family: 'VT323', monospace; font-size: 16px; line-height: 20px; padding: 0 10px; cursor: pointer; }
+.rct-btn:active { box-shadow: inset 1px 1px 0 #2a2510, inset -1px -1px 0 #ccc4a0; }
+.rct-feedback { display: flex; align-items: center; gap: 8px; margin-top: 6px; min-height: 44px; }
+.rct-feedback-text { font-size: 16px; font-weight: bold; color: #1a1800; }
+
+.wgrid { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; margin: 1rem 0; max-width: 380px; }
+.wrow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.wtile { width: 68px; height: 68px; background: #d4d0c8; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #808080; border-bottom: 2px solid #808080; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; font-family: 'Courier New', monospace; color: #111; }
+.wtile.filled  { border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #fff; border-bottom: 2px solid #fff; }
+.wtile.correct { background: #27ae60; border: 2px solid #1e8449; color: #fff; }
+.wtile.present { background: #e6b800; border: 2px solid #a07800; color: #111; }
+.wtile.absent  { background: #a09898; border: 2px solid #888; color: #d4d0c8; }
+.wkb   { margin-top: 1.25rem; max-width: 600px; }
+.wkrow { display: flex; gap: 5px; margin-bottom: 5px; }
+.wkey  { background: #d4d0c8; border-top: 2px solid #fff; border-left: 2px solid #fff; border-right: 2px solid #404040; border-bottom: 2px solid #404040; color: #111; font-family: 'Courier New', monospace; font-size: 0.8rem; font-weight: 700; padding: 8px 4px; min-width: 36px; cursor: pointer; text-align: center; flex: 1; }
+.wkey:active  { border-top: 2px solid #404040; border-left: 2px solid #404040; border-right: 2px solid #fff; border-bottom: 2px solid #fff; }
+.wkey.correct { background: #27ae60; color: #fff; border-color: #1e8449; }
+.wkey.present { background: #e6b800; color: #111; border-color: #a07800; }
+.wkey.absent  { background: #a09898; color: #d4d0c8; border-color: #888; }
+.wmsg { font-size: 0.78rem; min-height: 1.2rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+.nb-btn  { background: #111; color: #fff; border: none; padding: 12px 32px; font-size: 0.9rem; font-weight: 700; font-family: Arial, sans-serif; cursor: pointer; }
+.nb-page { display: none; padding: 3rem 2rem; text-align: center; font-family: Arial, sans-serif; }
+.nb-page h2 { font-size: 1.8rem; font-weight: 900; color: #111; margin-bottom: 1.5rem; }
+
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="titlebar">
+    <span class="titlebar-title" id="win-title">schnoobery.exe</span>
+    <div class="titlebar-btns">
+      <div class="tbtn">_</div>
+      <div class="tbtn">&#9633;</div>
+      <div class="tbtn">&#x2715;</div>
+    </div>
+  </div>
+  <div class="window-body" id="main-window-body">
+
+    <div class="screen active" id="s-asm">
+      <div class="rct-outer">
+        <div class="rct-window">
+          <div class="rct-titlebar">
+            <div class="rct-titlebar-wrap">
+              <span>Optionen - schnoobery.exe</span>
+              <div class="rct-titlebar-x">x</div>
+            </div>
+          </div>
+          <div class="rct-body">
+            <p class="rct-text" style="margin-bottom:6px;">hallo noob. before you get anything nice, you gotta prove yourself. let's see how good you are with assembly, shall we?</p>
+            <div class="rct-divider"></div>
+            <div style="display:flex;gap:10px;overflow:hidden;">
+              <div style="width:160px;flex-shrink:0;">
+                <p class="rct-label" style="margin-bottom:4px;">mikey's german vocabulary:</p>
+                <div class="rct-panel">
+                  <p class="rct-text">PFERD</p>
+                  <p class="rct-text">JA</p>
+                  <p class="rct-text">NEIN</p>
+                  <p class="rct-text">GENAU</p>
+                  <p class="rct-text">FISCH</p>
+                  <p class="rct-text">KURZGESAGT</p>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <p class="rct-label" style="margin-bottom:4px;">what is in <strong>AX</strong> at the end?</p>
+<pre class="rct-pre">
+words: DB "PFERD","JA","NEIN","GENAU","FISCH","KURZGESAGT",0
+
+MOV  AX, 0
+MOV  SI, 0
+
+count_loop:
+  MOV  CL, [words + SI]
+  CMP  CL, 0
+  JE   done
+  INC  AX
+  INC  SI
+  JMP  count_loop
+
+done:
+  SHR  AX, 1
+  INC  AX
+</pre>
+                <div class="rct-row">
+                  <div id="asm-input" class="rct-input" contenteditable="true" data-placeholder="enter a number..." onkeydown="if(event.key==='Enter'){event.preventDefault();checkAsm();}if(this.textContent.length>=4&&event.key.length===1){event.preventDefault();}"></div>
+                  <button class="rct-btn" onclick="checkAsm()">OK</button>
+                </div>
+                <div class="rct-feedback" id="asm-feedback" style="display:none;">
+                  <img id="asm-face" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="" style="width:44px;height:44px;image-rendering:pixelated;">
+                  <span class="rct-feedback-text" id="asm-feedback-text"></span>
+                </div>
+                <button class="rct-btn" id="asm-continue" style="display:none;margin-top:5px;" onclick="show('s-wordle');initWordle();">Weiter &rarr;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="s-wordle" style="position:fixed;top:0;left:0;right:0;bottom:0;background:url('images/WindowsBG.png') center center/cover no-repeat;display:none;align-items:center;justify-content:center;z-index:10;">
+      <div style="background:#d4d0c8;border-top:2px solid #fff;border-left:2px solid #fff;border-right:2px solid #404040;border-bottom:2px solid #404040;width:700px;max-width:95vw;">
+        <div style="background:linear-gradient(90deg,#000080,#1084d0);padding:3px 6px;display:flex;align-items:center;justify-content:space-between;">
+          <span style="color:#fff;font-size:0.78rem;font-weight:700;">wurdle.exe</span>
+          <div style="display:flex;gap:2px;">
+            <div class="tbtn">_</div>
+            <div class="tbtn">&#9633;</div>
+            <div class="tbtn">&#x2715;</div>
+          </div>
+        </div>
+        <div style="padding:1.25rem 1.5rem 1.5rem;">
+          <p style="margin-bottom:0.25rem;font-size:0.82rem;">JA, GENAU, SCHMAUSER! SECHZEHN!! now guess the word. you know this one, richtig?</p>
+          <p class="dim" style="margin-bottom:1rem;">6 tries. 5 letters.</p>
+          <div class="wmsg" id="wmsg"></div>
+          <div class="wgrid" id="wgrid"></div>
+          <div class="wkb" id="wkb"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="s-quiz" style="background:#2b2b2b;min-height:100vh;padding:1.5rem;font-family:Arial,sans-serif;">
+      <div style="background:#dee1e6;border-radius:8px 8px 0 0;padding:8px 12px 0;display:flex;align-items:center;gap:8px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:#ff5f57;flex-shrink:0;"></div>
+        <div style="width:12px;height:12px;border-radius:50%;background:#ffbd2e;flex-shrink:0;"></div>
+        <div style="width:12px;height:12px;border-radius:50%;background:#28c840;flex-shrink:0;"></div>
+        <div style="display:flex;align-items:flex-end;margin-left:8px;gap:2px;">
+          <div style="background:#fff;padding:6px 16px 0;border-radius:6px 6px 0 0;font-size:0.72rem;color:#333;display:flex;align-items:center;gap:6px;min-width:160px;">
+            <span>&#x1F171;</span> Noobberg <span style="margin-left:auto;color:#999;">&#x2715;</span>
+          </div>
+          <div style="background:#c8ccd2;padding:5px 14px 0;border-radius:6px 6px 0 0;font-size:0.72rem;color:#888;">+</div>
+        </div>
+      </div>
+      <div style="background:#dee1e6;padding:6px 12px 8px;display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;gap:10px;color:#666;font-size:1rem;">
+          <span onclick="browserBack()" style="cursor:pointer;">&#8592;</span>
+          <span onclick="browserForward()" style="cursor:pointer;">&#8594;</span>
+          <span onclick="goTo('quiz-landing')" style="cursor:pointer;">&#8635;</span>
+        </div>
+        <div style="flex:1;background:#fff;border-radius:20px;padding:4px 12px;font-size:0.75rem;color:#333;display:flex;align-items:center;gap:6px;">
+          <span style="color:#555;font-size:0.7rem;">&#x1F512;</span> noobberg.com/games/punkted
+        </div>
+        <div style="color:#666;font-size:0.85rem;">&#8942;</div>
+      </div>
+
+      <div style="background:#fff;height:calc(100vh - 120px);overflow-y:auto;font-family:Arial,sans-serif;">
+
+        <div style="background:#000;color:#fff;font-size:0.65rem;padding:6px 1.5rem;display:flex;gap:1.5rem;align-items:center;">
+          <span onclick="goTo('nerd-page')" style="cursor:pointer;">Noobberg the Company &amp; Its Products &#9660;</span>
+          <span>|</span>
+          <span onclick="goTo('osrs-page')" style="cursor:pointer;">Noobberg Terminal Demo Request</span>
+          <span>|</span>
+          <span onclick="goTo('sea-creatures-page')" style="color:#f90;cursor:pointer;">&#x1F41F; Noobberg Anywhere Remote Login</span>
+          <span>|</span>
+          <span onclick="goTo('schnoob-edition-page')" style="cursor:pointer;">Noobberg Customer Support</span>
+        </div>
+        <div style="background:#000;padding:10px 1.5rem;display:flex;align-items:center;justify-content:space-between;">
+          <div style="color:#fff;font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;">Noobberg</div>
+          <div style="display:flex;gap:1rem;align-items:center;">
+            <span style="color:#fff;font-size:0.85rem;border:1px solid #fff;padding:4px 14px;cursor:pointer;">Sign In</span>
+            <span style="color:#000;background:#fff;font-size:0.85rem;padding:4px 14px;cursor:pointer;font-weight:700;">Subscribe</span>
+            <span style="color:#fff;font-size:1rem;">&#x1F50D;</span>
+          </div>
+        </div>
+        <div style="background:#1a1a1a;padding:8px 1.5rem;display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;">
+          <div style="display:flex;gap:1.5rem;align-items:center;color:#fff;">
+            <span style="color:#f00;">&#9679; Live TV</span>
+            <span onclick="goTo('sea-creatures-page')" style="cursor:pointer;">Sea Creatures &#9660;</span>
+            <span onclick="goTo('osrs-page')" style="cursor:pointer;">OSRS</span>
+            <span onclick="goTo('hexagons-page')" style="cursor:pointer;">Hexagons</span>
+            <span onclick="goTo('nxdes-page')" style="cursor:pointer;">N*des</span>
+            <span onclick="goTo('nerd-page')" style="cursor:pointer;">Tech</span>
+            <span onclick="goTo('pferd-page')" style="cursor:pointer;">PFERD</span>
+            <span onclick="window.open('https://medium.com/@abiradayalnov2008/why-the-ugliest-fish-in-the-world-isnt-ugly-at-all-abe30833e1a9','_blank')" style="cursor:pointer;">Noobberg Opinion</span>
+            <span onclick="window.open('https://www.youtube.com/watch?v=BBJa32lCaaY','_blank')" style="cursor:pointer;">Video</span>
+            <span onclick="goTo('schnoob-edition-page')" style="cursor:pointer;">More &#9660;</span>
+          </div>
+          <span onclick="goTo('schnoob-edition-page')" style="color:#fff;cursor:pointer;">Schnoob Edition &#9660;</span>
+        </div>
+
+        <div id="quiz-landing" class="nb-page" style="display:flex;flex-direction:column;align-items:center;padding:4rem 1rem;">
+          <div style="position:relative;width:120px;height:100px;margin-bottom:1.5rem;">
+            <div style="position:absolute;top:0;left:30px;background:#aacc00;color:#000;font-weight:700;font-size:0.9rem;width:50px;height:50px;display:flex;align-items:center;justify-content:center;border-radius:8px;transform:rotate(-15deg);">3x</div>
+            <div style="position:absolute;bottom:0;left:5px;background:#e84040;color:#fff;font-weight:700;font-size:1.2rem;width:50px;height:50px;display:flex;align-items:center;justify-content:center;border-radius:8px;transform:rotate(-10deg);">&#x2717;</div>
+            <div style="position:absolute;bottom:0;right:5px;background:#00aa66;color:#fff;font-weight:700;font-size:1.2rem;width:50px;height:50px;display:flex;align-items:center;justify-content:center;border-radius:8px;transform:rotate(8deg);">&#x2713;</div>
+          </div>
+          <div style="font-size:3rem;font-weight:900;color:#111;letter-spacing:-0.03em;margin-bottom:0.5rem;">PUNKTed</div>
+          <div style="font-size:0.95rem;font-weight:700;color:#111;margin-bottom:0.75rem;">by Selina, for Noob</div>
+          <div style="font-size:1rem;color:#333;margin-bottom:2rem;">the quiz for noobs who think they know everything</div>
+          <button onclick="goTo('quiz-howto')" style="background:#111;color:#fff;border:none;padding:14px 0;font-size:1rem;font-weight:700;cursor:pointer;width:340px;max-width:90vw;font-family:Arial,sans-serif;">Start</button>
+          <div style="font-size:0.8rem;color:#888;margin-top:1.5rem;">Questions by Selina (your Maus &#x1F42D;)</div>
+        </div>
+
+        <div id="quiz-howto" class="nb-page" style="flex-direction:column;align-items:center;">
+          <div style="font-size:2rem;font-weight:900;color:#111;margin-bottom:2.5rem;">How to Play</div>
+          <div style="display:flex;flex-direction:column;gap:2rem;width:480px;max-width:90vw;text-align:left;margin:0 auto 2.5rem;">
+            <div style="display:flex;align-items:center;gap:1.5rem;">
+              <img src="images/ToggleBar.png" alt="" style="width:60px;flex-shrink:0;object-fit:contain;">
+              <div>
+                <div style="font-size:1rem;font-weight:700;color:#111;margin-bottom:0.25rem;">don't be a noob</div>
+                <div style="font-size:0.875rem;color:#555;">seriously. you know this stuff.</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:1.5rem;">
+              <img src="images/3x.png" alt="" style="width:60px;flex-shrink:0;object-fit:contain;">
+              <div>
+                <div style="font-size:1rem;font-weight:700;color:#111;margin-bottom:0.25rem;">don't fuck up</div>
+                <div style="font-size:0.875rem;color:#555;">there are consequences. not really. but still.</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:1.5rem;">
+              <img src="images/Checks.png" alt="" style="width:60px;flex-shrink:0;object-fit:contain;">
+              <div>
+                <div style="font-size:1rem;font-weight:700;color:#111;margin-bottom:0.25rem;">use your brain</div>
+                <div style="font-size:0.875rem;color:#555;">it's in there somewhere. probably.</div>
+              </div>
+            </div>
+          </div>
+          <button onclick="goTo('quiz-wager')" style="background:#111;color:#fff;border:none;padding:14px 0;font-size:1rem;font-weight:700;cursor:pointer;width:340px;max-width:90vw;font-family:Arial,sans-serif;">Got it</button>
+        </div>
+
+        <div id="quiz-wager" class="nb-page">
+          <div style="max-width:720px;margin:0 auto;">
+            <div style="margin-bottom:1.5rem;">
+              <span style="font-size:1.6rem;font-weight:900;color:#111;">Place your bets: </span>
+              <span style="font-size:1.6rem;font-weight:900;color:#27ae60;">100</span>
+              <span style="font-size:1.6rem;font-weight:900;color:#111;"> /100</span>
+            </div>
+            <p style="font-size:0.9rem;color:#555;margin-bottom:2rem;">You choose how much each question will be worth. Just make sure the sliders add up to 100.</p>
+            <div id="wager-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem 3rem;margin-bottom:2.5rem;">
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:0.85rem;font-weight:700;">Q1 &nbsp;POLITICS</span><span style="font-size:0.85rem;font-weight:700;">20 pts</span></div>
+                <input type="range" class="wslider" min="5" max="30" value="20" oninput="noobSlider()" style="width:100%;accent-color:#111;">
+                <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#aaa;margin-top:2px;"><span>5</span><span>30</span></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:0.85rem;font-weight:700;">Q2 &nbsp;THE WILD LIFE</span><span style="font-size:0.85rem;font-weight:700;">20 pts</span></div>
+                <input type="range" class="wslider" min="5" max="30" value="20" oninput="noobSlider()" style="width:100%;accent-color:#111;">
+                <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#aaa;margin-top:2px;"><span>5</span><span>30</span></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:0.85rem;font-weight:700;">Q3 &nbsp;PSYCHOLOGY &amp; EMOTIONS</span><span style="font-size:0.85rem;font-weight:700;">20 pts</span></div>
+                <div style="font-size:0.7rem;color:#bbb;font-style:italic;margin-bottom:4px;">rather turn the points down on this one</div>
+                <input type="range" class="wslider" min="5" max="30" value="20" oninput="noobSlider()" style="width:100%;accent-color:#111;">
+                <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#aaa;margin-top:2px;"><span>5</span><span>30</span></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:0.85rem;font-weight:700;">Q4 &nbsp;HISTORY</span><span style="font-size:0.85rem;font-weight:700;">20 pts</span></div>
+                <input type="range" class="wslider" min="5" max="30" value="20" oninput="noobSlider()" style="width:100%;accent-color:#111;">
+                <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#aaa;margin-top:2px;"><span>5</span><span>30</span></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:0.85rem;font-weight:700;">Q5 &nbsp;GAMING</span><span style="font-size:0.85rem;font-weight:700;">20 pts</span></div>
+                <input type="range" class="wslider" min="5" max="30" value="20" oninput="noobSlider()" style="width:100%;accent-color:#111;">
+                <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#aaa;margin-top:2px;"><span>5</span><span>30</span></div>
+              </div>
+            </div>
+            <div id="wager-doggo" style="display:none;text-align:center;padding:1rem 0 2rem;">
+              <img src="images/SmirkerDoggo.png" alt="" style="height:120px;display:block;margin:0 auto 0.75rem;">
+              <div style="font-size:1rem;font-weight:700;color:#111;">nice try, s0pper</div>
+              <div style="font-size:0.8rem;color:#888;margin-top:0.25rem;">20 pts per question. that's final.</div>
+            </div>
+            <div style="text-align:center;">
+              <button onclick="startQuizFromWager()" style="background:#111;color:#fff;border:none;padding:14px 0;font-size:1rem;font-weight:700;cursor:pointer;width:340px;max-width:90vw;font-family:Arial,sans-serif;">I'm ready</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="quiz-area" class="nb-page">
+          <div style="padding:1rem 0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e0e0e0;">
+            <div id="q-dots" style="display:flex;gap:6px;align-items:center;"></div>
+            <div style="font-size:0.85rem;font-weight:700;color:#111;">PUNKTed &nbsp;|&nbsp; Your score <span id="q-score-badge" style="font-weight:900;">0</span></div>
+          </div>
+          <div style="max-width:740px;margin:0 auto;padding:2.5rem 0 1rem;">
+            <div id="q-text" style="font-size:1.2rem;color:#111;line-height:1.6;margin-bottom:2.5rem;"></div>
+            <div id="q-options" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;"></div>
+          </div>
+          <div style="max-width:740px;margin:0 auto;padding:0 0 2rem;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:0.85rem;color:#111;">
+              <span id="q-category" style="font-weight:700;"></span>: <strong>20 pts</strong>
+              <div id="q-category-note" style="font-size:0.7rem;color:#bbb;font-style:italic;display:none;margin-top:2px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="quiz-explanation" class="nb-page">
+          <div style="padding:1rem 0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e0e0e0;">
+            <div id="exp-dots" style="display:flex;gap:6px;align-items:center;"></div>
+            <div style="font-size:0.85rem;font-weight:700;color:#111;">PUNKTed &nbsp;|&nbsp; Your score <span id="exp-score-badge" style="font-weight:900;">0</span></div>
+          </div>
+          <div style="max-width:740px;margin:0 auto;padding:2.5rem 0;">
+            <div id="exp-img-wrap" style="display:none;margin-bottom:1.5rem;text-align:center;">
+              <img id="exp-img" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="" style="max-width:100%;max-height:300px;border-radius:4px;object-fit:cover;">
+            </div>
+            <div id="exp-answer-banner" style="background:#00635a;color:#fff;border-radius:6px;padding:14px 18px;font-size:1rem;font-weight:700;margin-bottom:12px;"></div>
+            <div style="background:#fff;border:1px solid #e0e0e0;border-radius:6px;padding:14px 18px;margin-bottom:1.5rem;">
+              <div style="background:#e0e0e0;border-radius:4px;height:8px;margin-bottom:10px;overflow:hidden;">
+                <div id="exp-bar" style="height:100%;background:#00635a;border-radius:4px;transition:width 0.8s ease;width:0%;"></div>
+              </div>
+              <div id="exp-bar-label" style="font-size:0.85rem;color:#333;"></div>
+            </div>
+            <div id="exp-text" style="font-size:1rem;color:#333;line-height:1.7;margin-bottom:2.5rem;"></div>
+            <div style="text-align:center;">
+              <button onclick="nextPQuestion()" style="background:#111;color:#fff;border:none;padding:14px 0;font-size:1rem;font-weight:700;font-family:Arial,sans-serif;cursor:pointer;width:340px;max-width:90vw;">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="score-screen" class="nb-page" style="text-align:center;padding:4rem 1.5rem;">
+          <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:1rem;">Your Score</div>
+          <div id="final-score" style="font-size:5rem;font-weight:900;color:#111;line-height:1;margin-bottom:0.5rem;">0</div>
+          <div style="font-size:1rem;color:#555;margin-bottom:2rem;">out of 100</div>
+          <div id="score-comment" style="font-size:1.1rem;font-weight:700;color:#111;margin-bottom:2.5rem;"></div>
+          <button onclick="startPhotoStack()" style="background:#111;color:#fff;border:none;padding:14px 48px;font-size:1rem;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;">continue &rarr;</button>
+        </div>
+
+        <div id="sea-creatures-page" class="nb-page">
+          <h2>your fave uggos</h2>
+          <div style="font-size:0.9rem;color:#888;margin-bottom:2.5rem;">a curated collection. handpicked by you. for reasons.</div>
+          <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-bottom:3rem;">
+            <img src="images/Uggo1.avif" alt="ugly fish" loading="eager" style="width:300px;height:220px;object-fit:cover;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+            <img src="images/Uggo2.jpg"  alt="ugly fish" loading="eager" style="width:300px;height:220px;object-fit:cover;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+            <img src="images/Uggo3.jpeg" alt="ugly fish" loading="eager" style="width:300px;height:220px;object-fit:cover;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+            <img src="images/Uggo4.jpeg" alt="ugly fish" loading="eager" style="width:300px;height:220px;object-fit:cover;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+            <img src="images/Uggo5.jpg"  alt="ugly fish" loading="eager" style="width:300px;height:220px;object-fit:cover;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+            <img src="images/Uggo6.webp" alt="ugly fish" loading="eager" style="width:300px;height:220px;object-fit:cover;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+            <img src="images/Uggo7.webp" alt="ugly fish" loading="eager" style="width:300px;height:220px;object-fit:cover;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);">
+          </div>
+          <button class="nb-btn" onclick="goTo('quiz-landing')">&larr; return to Noobberg</button>
+        </div>
+
+        <div id="osrs-page" class="nb-page">
+          <h2>what did u expect</h2>
+          <img src="images/OSRS.png" alt="OSRS" loading="eager" style="max-width:100%;max-height:70vh;object-fit:contain;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);margin-bottom:2rem;">
+          <br>
+          <button class="nb-btn" onclick="goTo('quiz-landing')">&larr; return to Noobberg</button>
+        </div>
+
+        <div id="hexagons-page" class="nb-page">
+          <h2 style="font-size:1.4rem;max-width:500px;margin:0 auto 2rem;line-height:1.5;">if u were an insect u would be a bee so u could spend all your life surrounded by hexagons</h2>
+          <img src="images/Hexagons.webp" alt="hexagons" loading="eager" style="max-width:100%;max-height:70vh;object-fit:contain;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);margin-bottom:2rem;">
+          <br>
+          <button class="nb-btn" onclick="goTo('quiz-landing')">&larr; return to Noobberg</button>
+        </div>
+
+        <div id="nxdes-page" class="nb-page">
+          <h2>greedysop</h2>
+          <img src="images/nxdes.png" alt="" loading="eager" style="max-width:100%;max-height:70vh;object-fit:contain;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);margin-bottom:2rem;">
+          <br>
+          <button class="nb-btn" onclick="goTo('quiz-landing')">&larr; return to Noobberg</button>
+        </div>
+
+        <div id="nerd-page" class="nb-page" style="padding:6rem 2rem;">
+          <h2>the person who reads this is a massive n3rd</h2>
+          <button class="nb-btn" onclick="goTo('quiz-landing')">&larr; return to Noobberg</button>
+        </div>
+
+        <div id="pferd-page" class="nb-page" style="padding:2rem;">
+          <img src="images/Pferd.jpeg" alt="PFERD" loading="eager" style="max-width:100%;max-height:85vh;object-fit:contain;margin-bottom:2rem;">
+          <br>
+          <button class="nb-btn" onclick="goTo('quiz-landing')">&larr; return to Noobberg</button>
+        </div>
+
+        <div id="schnoob-edition-page" class="nb-page" style="padding:6rem 2rem;">
+          <h2 style="font-size:1.6rem;max-width:500px;margin:0 auto 2rem;line-height:1.5;">Mauzer, if you want more come back to Germany and steal me.</h2>
+          <button class="nb-btn" onclick="goTo('quiz-landing')">&larr; return to Noobberg</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="screen" id="photo-stack-screen" style="min-height:100vh;position:relative;overflow:hidden;">
+      <div style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:0;background:url('images/Maps.png') center center/cover no-repeat;"></div>
+      <div style="position:relative;z-index:1;padding:3rem 1rem;text-align:center;min-height:100vh;display:flex;flex-direction:column;align-items:center;">
+        <h2 style="font-size:1.4rem;font-weight:900;color:#111;margin-bottom:2.5rem;font-family:Arial,sans-serif;background:rgba(255,255,255,0.85);padding:0.5rem 1.5rem;border-radius:4px;">blast through the past year with me, schmauz</h2>
+        <div id="photo-stack" style="position:relative;width:340px;height:520px;margin:0 auto 1.5rem;cursor:pointer;" onclick="removeTopPhoto()"></div>
+        <p id="stack-hint" style="font-size:0.8rem;color:#555;font-family:Arial,sans-serif;background:rgba(255,255,255,0.75);padding:0.25rem 0.75rem;border-radius:4px;">click to peel away</p>
+      </div>
+    </div>
+
+    <div class="screen" id="s-end" style="max-width:680px;margin:0 auto;">
+      <h1>dein erster liebesbrief.exe <span class="blink">_</span></h1>
+      <hr>
+      <p style="margin-bottom:1.5rem;">Dear Michael James Rowley,</p>
+      <p class="dim" style="margin-bottom:1rem;">Unfortunately, I have accumulated quite a bit of evidence against you.</p>
+      <p class="dim" style="margin-bottom:1rem;">When I first met you, I thought you were just some Scottish guy with questionable hobbies, an unhealthy attachment to fishing, and an alarming amount of confidence for somebody who routinely gets beaten by a non-native speaker at English word games.</p>
+      <p class="dim" style="margin-bottom:1rem;">That felt manageable.</p>
+      <p class="dim" style="margin-bottom:1rem;">Then somehow things got out of hand.</p>
+      <p class="dim" style="margin-bottom:1rem;">At some point I stopped being excited about things happening to me and started being excited about telling you about them.<br>You became the person I wanted to complain to.<br>The person whose opinion I wanted before I had formed my own.<br>The person I wanted to annoy first whenever I discovered a new and creative way of being annoying.<br>... Which, as you know, is one of my strongest skills.</p>
+      <p class="dim" style="margin-bottom:1rem;">I still don't know exactly when it happened. There was no grand moment, no DRAMATISCH revelation. Just hundreds of small - excuse me, TINYYY - moments.</p>
+      <p class="dim" style="margin-bottom:1rem;">A stupid joke becoming an inside joke.<br>An inside joke becoming a language.<br>A language I plan on having a long, loooong Duolingo streak on.</p>
+      <p class="dim" style="margin-bottom:1rem;">Somewhere between Maus, Mauz, Mauser, Schmauzer, Noob, Schnoob, Schneebula, Sopper and whatever new evolutionary stage of rodent or fruit we invent next week, you became my favourite person.<br>Which is honestly quite embarrassing for both of us. Especially when one has to pick up a pizza and announce to the restaurant that they are SCHMAUSER.</p>
+      <p class="dim" style="margin-bottom:1rem;">Yet.</p>
+      <p class="dim" style="margin-bottom:1rem;">You are also the person who made 365 days feel so much brighter than they had any right to.<br>The person who made me impatient for a future I usually would have preferred to postpone indefinitely.</p>
+      <p class="dim" style="margin-bottom:1rem;">I used to think people being into fishing were incredibly weird.<br>That was before Michael James Rowley showed up and... absolutely proved my point right. AHAHA.</p>
+      <p class="dim" style="margin-bottom:1rem;">But you also ruined one of my arguments.<br>I never thought I'd like aquariums.<br>And before you celebrate: I still don't.<br>Jesus, I hate fish. How could I ever like an aquarium?</p>
+      <p class="dim" style="margin-bottom:1rem;">But I used to think "you mean the world to me" was one of the biggest expressions of affection.<br>But somehow for you it is to keep helping you look for hidden ugly fish on the sandy ground of an aquarium tank.<br>That seems to be enough for you.<br>And maybe slowly even enough for me, as long as it is you who I am scouting fish for.</p>
+      <p class="dim" style="margin-bottom:1rem;">Turning me into someone that goes to aquariums with you willingly... that was an insane play, Mikey.</p>
+      <p class="dim" style="margin-bottom:1rem;">I lo-like you. A lot.</p>
+      <p class="dim" style="margin-bottom:2.5rem;">... you mean the ocean to me. :)</p>
+      <p>Yours,<br>Selina the Schneebs &#x1F42D;</p>
+    </div>
+
+  </div>
+</div>
+
+<div id="xp-loading" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:#d4d0c8;border-top:2px solid #fff;border-left:2px solid #fff;border-right:2px solid #404040;border-bottom:2px solid #404040;width:300px;">
+    <div style="background:linear-gradient(90deg,#000080,#1084d0);padding:3px 8px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="color:#fff;font-size:0.75rem;font-weight:700;">wurdle.exe</span>
+      <div class="tbtn">&#x2715;</div>
+    </div>
+    <div style="padding:1.5rem 1.25rem 1.25rem;">
+      <div style="font-size:0.78rem;color:#111;margin-bottom:1rem;text-align:center;letter-spacing:0.05em;">Loading ...</div>
+      <div style="background:#d4d0c8;border-top:2px solid #808080;border-left:2px solid #808080;border-right:2px solid #fff;border-bottom:2px solid #fff;height:22px;width:236px;padding:2px;display:flex;gap:2px;align-items:center;overflow:hidden;">
+        <div id="xp-segments" style="display:flex;gap:2px;"></div>
+      </div>
+      <div style="display:flex;justify-content:center;margin-top:1rem;">
+        <div style="background:#d4d0c8;border-top:2px solid #fff;border-left:2px solid #fff;border-right:2px solid #404040;border-bottom:2px solid #404040;font-size:0.78rem;padding:3px 20px;color:#111;">Cancel</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="xp-win" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:#d4d0c8;border-top:2px solid #fff;border-left:2px solid #fff;border-right:2px solid #404040;border-bottom:2px solid #404040;width:300px;">
+    <div style="background:linear-gradient(90deg,#000080,#1084d0);padding:3px 8px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="color:#fff;font-size:0.75rem;font-weight:700;">wurdle.exe</span>
+      <div class="tbtn">&#x2715;</div>
+    </div>
+    <div style="padding:1.25rem 1rem 1rem;">
+      <div style="display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:1.25rem;">
+        <div style="font-size:2rem;line-height:1;">&#x2139;&#xFE0F;</div>
+        <div>
+          <div style="font-size:0.85rem;font-weight:700;color:#111;margin-bottom:0.25rem;">JA GENAU!!</div>
+          <div style="font-size:0.75rem;color:#111;">FISHY. richtig. weiter gehts.</div>
+        </div>
+      </div>
+      <div style="border-top:1px solid #808080;border-bottom:1px solid #fff;margin-bottom:0.75rem;"></div>
+      <div style="display:flex;justify-content:center;">
+        <button onclick="document.getElementById('xp-win').style.display='none';show('s-quiz');" style="font-size:0.78rem;padding:4px 24px;min-width:75px;">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="xp-lose" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:#d4d0c8;border-top:2px solid #fff;border-left:2px solid #fff;border-right:2px solid #404040;border-bottom:2px solid #404040;width:280px;">
+    <div style="background:linear-gradient(90deg,#000080,#1084d0);padding:3px 8px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="color:#fff;font-size:0.75rem;font-weight:700;">wurdle.exe</span>
+      <div class="tbtn">&#x2715;</div>
+    </div>
+    <div style="padding:1.25rem 1rem 1rem;">
+      <div style="display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:1.25rem;">
+        <div style="font-size:2rem;line-height:1;">&#x1F6AB;</div>
+        <div>
+          <div style="font-size:0.82rem;font-weight:700;color:#111;margin-bottom:0.25rem;">nicht so gut.</div>
+          <div style="font-size:0.78rem;color:#111;">try again, noob.</div>
+        </div>
+      </div>
+      <div style="border-top:1px solid #808080;border-bottom:1px solid #fff;margin-bottom:0.75rem;"></div>
+      <div style="display:flex;justify-content:center;">
+        <button onclick="document.getElementById('xp-lose').style.display='none';wGuesses=[];wCurrent='';wDone=false;initWordle();" style="font-size:0.78rem;padding:4px 24px;min-width:75px;">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ANGRY = 'images/AngryFace.png';
+const HAPPY = 'images/HappyFace.png';
+const WORD  = 'FISHY';
+const KEYS  = [
+  ['Q','W','E','R','T','Y','U','I','O','P'],
+  ['A','S','D','F','G','H','J','K','L'],
+  ['ENTER','Z','X','C','V','B','N','M','\u232B']
+];
+const OPT_LABELS = ['A','B','C','D'];
+
+const pQuestions = [
+  {
+    category: 'POLITICS', note: null, img: 'images/Question1.jpeg',
+    q: "What was Mikey's foreign policy strategy upon first contact?",
+    opts: ['Immediate annexation of Straubing', 'Strategic platform migration (Hinge \u2192 Instagram)', 'Playing hard to get for 3 business days', 'Asking about RollerCoaster Tycoon within the first 5 messages'],
+    correct: 1,
+    fb: 'Classic diplomatic manoeuvre. Matched on Hinge, immediately relocated negotiations to Instagram. He then opened talks with the word \u201cKurzgesagt\u201d to immediately build a bridge with the German negotiating partner. Very smooth. Almost suspicious.'
+  },
+  {
+    category: 'THE WILD LIFE', note: null, img: 'images/Question2.png',
+    q: 'What is genuinely true about spider monkeys?',
+    opts: ['They can leap up to 9 metres in a single swing', 'They are the only primates that can\u2019t swim', 'They mate for life and are fiercely monogamous', 'They have been observed using tools like chimpanzees'],
+    correct: 0,
+    fb: '9 metres in a single swing. No thumbs. Just rage. One of them proved this by staring Mikey down at Edinburgh Zoo for an uncomfortable amount of time. Mikey blinked first.'
+  },
+  {
+    category: 'PSYCHOLOGY & EMOTIONS', note: 'rather turn the points down on this one', img: 'images/Question3.jpeg',
+    q: "What does it mean when someone can\u2019t stop smiling at their phone at a Formula 1 race surrounded by their friends?",
+    opts: ['They got very good news from their bank', 'They are live-tweeting the race', 'Classic anxious attachment behaviour', 'They are absolutely, hopelessly gone for someone'],
+    correct: 3,
+    fb: "Silverstone, summer 2025. Mikey\u2019s friends asked \u201cok who is she?\u201d Science calls this \u201cinvoluntary happiness display.\u201d We call it: schnoobery.\n\nBonus: I told you I was falling for you. Because I couldn\u2019t keep it in any longer. You said it back. The rest is history."
+  },
+  {
+    category: 'HISTORY', note: null, img: 'images/Question4.jpeg',
+    q: 'Who was first called a n00b - marking the beginning of the Noobery and triggering the entire chain of Schnobisms that followed?',
+    opts: ['Chris Sawyer, for writing RollerCoaster Tycoon in Assembly', 'Natalie, for voting Green but flying back and forth between Japan and Germany', 'Mikey, for being the mega n00b', 'Corsie, for bashing Selina\u2019s favourite football team'],
+    correct: 1,
+    fb: "It wasn\u2019t Mikey. It was Natalie. Selina blurted out \u201cthat noob\u201d on a phone call, Mikey burst out laughing, asked if he heard that correctly - and thus the Schnoobery was born. Natalie has no idea she is responsible for all of this."
+  },
+  {
+    category: 'GAMING', note: null, img: 'images/Question5.png',
+    q: 'Why does Fishing Trawler in OSRS have such terrible XP rates?',
+    opts: ['It was intentionally designed as a punishment minigame', 'It was accidentally nerfed by 2.5x during a game conversion and nobody noticed for 20 years', 'Jagex reduced it after player complaints about it being too easy', "It\u2019s bugged and Jagex refuses to fix it"],
+    correct: 1,
+    fb: "Accidentally nerfed by 2.5x. For 20 years. Nobody noticed. This is the game Mikey chose to invest 13 million XP into. I support him unconditionally. I obviously knew about this without having to research it. A true OSRS fish main knows stuff like this."
+  }
+];
+
+// --- SCREEN NAVIGATION ---
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('active');
+  if (id === 's-asm') el.style.display = 'flex';
+  if (id === 's-wordle') { el.style.opacity = '0'; el.style.display = 'flex'; const bg = new Image(); bg.onload = bg.onerror = () => { el.style.transition = 'opacity 0.3s'; el.style.opacity = '1'; }; bg.src = 'images/WindowsBG.png'; }
+  if (id === 's-quiz') { el.style.display = 'block'; goTo('quiz-landing', false); }
+  if (id === 'photo-stack-screen' || id === 's-end') el.style.display = 'block';
+  const isFullscreen = ['s-asm', 's-wordle', 's-quiz', 's-end', 'photo-stack-screen'].includes(id);
+  const xpWindow = document.querySelector('.window');
+  const titlebar = document.querySelector('.titlebar');
+  const wb = document.getElementById('main-window-body');
+  if (xpWindow) { xpWindow.style.border = isFullscreen ? 'none' : ''; xpWindow.style.background = isFullscreen ? 'transparent' : '#d4d0c8'; }
+  if (titlebar) titlebar.style.display = isFullscreen ? 'none' : '';
+  if (wb) { wb.style.padding = isFullscreen ? '0' : ''; wb.style.background = isFullscreen ? 'transparent' : ''; }
+  const winTitle = document.getElementById('win-title');
+  if (winTitle) winTitle.textContent = { 's-asm': 'schnoobery.exe', 's-wordle': 'wurdle.exe', 's-quiz': 'quiz.exe', 's-end': 'dein erster liebesbrief.exe' }[id] || 'schnoobery.exe';
+}
+window.addEventListener('load', () => {
+  const rct = new Image();
+  rct.onload = rct.onerror = () => show('s-asm');
+  rct.src = 'images/RCT_Screenshot.jpg';
+});
+
+// --- NOOBBERG SUB-PAGE NAVIGATION ---
+const NB_PAGES = ['quiz-landing','quiz-howto','quiz-wager','quiz-area','quiz-explanation','score-screen','sea-creatures-page','osrs-page','hexagons-page','nxdes-page','nerd-page','pferd-page','schnoob-edition-page'];
+const nbHistory = [];
+let histPos = -1;
+
+function goTo(pageId, addToHistory) {
+  if (addToHistory === undefined) addToHistory = true;
+  NB_PAGES.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const el = document.getElementById(pageId);
+  if (!el) return;
+  el.style.display = (pageId === 'quiz-landing' || pageId === 'quiz-howto') ? 'flex' : 'block';
+  if (addToHistory) {
+    nbHistory.splice(histPos + 1);
+    nbHistory.push(pageId);
+    histPos = nbHistory.length - 1;
+  }
+}
+
+function browserBack() {
+  if (histPos <= 0) return;
+  histPos--;
+  goTo(nbHistory[histPos], false);
+}
+
+function browserForward() {
+  if (histPos >= nbHistory.length - 1) return;
+  histPos++;
+  goTo(nbHistory[histPos], false);
+}
+
+// --- ASSEMBLY ---
+function checkAsm() {
+  const v = document.getElementById('asm-input').textContent.trim();
+  if (!v) return;
+  const fb = document.getElementById('asm-feedback');
+  const face = document.getElementById('asm-face');
+  const txt = document.getElementById('asm-feedback-text');
+  fb.style.display = 'flex';
+  if (v === '16') {
+    face.src = HAPPY;
+    txt.textContent = 'sehr gut! unlocking next level...';
+    document.getElementById('asm-continue').style.display = 'inline-block';
+  } else {
+    face.src = ANGRY;
+    txt.textContent = 'nicht so gut. try again.';
+    document.getElementById('asm-continue').style.display = 'none';
+  }
+}
+// asm-input keydown is handled inline on the contenteditable div
+
+// --- WURDLE ---
+let wGuesses = [], wCurrent = '', wDone = false;
+
+function initWordle() {
+  const grid = document.getElementById('wgrid');
+  grid.innerHTML = '';
+  for (let r = 0; r < 6; r++) {
+    const row = document.createElement('div');
+    row.className = 'wrow';
+    for (let c = 0; c < 5; c++) {
+      const t = document.createElement('div');
+      t.className = 'wtile';
+      t.id = 't-' + r + '-' + c;
+      row.appendChild(t);
+    }
+    grid.appendChild(row);
+  }
+  const kb = document.getElementById('wkb');
+  kb.innerHTML = '';
+  KEYS.forEach(row => {
+    const r = document.createElement('div');
+    r.className = 'wkrow';
+    row.forEach(k => {
+      const b = document.createElement('div');
+      b.className = 'wkey';
+      b.textContent = k;
+      b.id = 'k-' + k;
+      b.style.minWidth = k.length > 1 ? '52px' : '';
+      b.onclick = () => handleKey(k);
+      r.appendChild(b);
+    });
+    kb.appendChild(r);
+  });
+  document.addEventListener('keydown', wKeydown);
+  wGuesses = []; wCurrent = ''; wDone = false;
+  document.getElementById('wmsg').innerHTML = '';
+}
+
+function wKeydown(e) {
+  if (wDone) return;
+  if (e.key === 'Enter') handleKey('ENTER');
+  else if (e.key === 'Backspace') handleKey('\u232B');
+  else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toUpperCase());
+}
+
+function handleKey(k) {
+  if (wDone) return;
+  const row = wGuesses.length;
+  if (k === '\u232B') {
+    if (wCurrent.length > 0) { wCurrent = wCurrent.slice(0, -1); updateRow(row); }
+  } else if (k === 'ENTER') {
+    if (wCurrent.length < 5) { document.getElementById('wmsg').textContent = '5 letters please.'; return; }
+    showLoadingPopup(submitGuess);
+  } else if (wCurrent.length < 5) {
+    wCurrent += k;
+    updateRow(row);
+  }
+}
+
+function updateRow(row) {
+  for (let c = 0; c < 5; c++) {
+    const t = document.getElementById('t-' + row + '-' + c);
+    t.textContent = wCurrent[c] || '';
+    t.className = 'wtile' + (wCurrent[c] ? ' filled' : '');
+  }
+}
+
+function submitGuess() {
+  const row = wGuesses.length;
+  const guess = wCurrent;
+  const result = scoreWord(guess);
+  wGuesses.push(guess);
+  const keyState = {};
+  for (let c = 0; c < 5; c++) {
+    const t = document.getElementById('t-' + row + '-' + c);
+    t.textContent = guess[c];
+    t.className = 'wtile ' + result[c];
+    const cur = keyState[guess[c]];
+    if (!cur || cur === 'absent' || (cur === 'present' && result[c] === 'correct')) keyState[guess[c]] = result[c];
+  }
+  Object.entries(keyState).forEach(([k, s]) => {
+    const el = document.getElementById('k-' + k);
+    const cur = el && el.className.split(' ').find(c => ['correct','present','absent'].includes(c));
+    if (el && (!cur || cur === 'absent' || (cur === 'present' && s === 'correct'))) el.className = 'wkey ' + s;
+  });
+  wCurrent = '';
+  if (result.every(r => r === 'correct')) {
+    wDone = true;
+    document.removeEventListener('keydown', wKeydown);
+    showWinPopup();
+  } else if (wGuesses.length >= 6) {
+    wDone = true;
+    document.removeEventListener('keydown', wKeydown);
+    showLosePopup();
+  }
+}
+
+function scoreWord(guess) {
+  const res = ['absent','absent','absent','absent','absent'];
+  const pool = WORD.split('');
+  for (let i = 0; i < 5; i++) { if (guess[i] === WORD[i]) { res[i] = 'correct'; pool[i] = null; } }
+  for (let i = 0; i < 5; i++) {
+    if (res[i] === 'correct') continue;
+    const idx = pool.indexOf(guess[i]);
+    if (idx > -1) { res[i] = 'present'; pool[idx] = null; }
+  }
+  return res;
+}
+
+// --- XP POPUPS ---
+function showLoadingPopup(cb) {
+  const popup = document.getElementById('xp-loading');
+  const segs = document.getElementById('xp-segments');
+  popup.style.display = 'flex';
+  segs.innerHTML = '';
+  let count = 0;
+  const timer = setInterval(() => {
+    if (count >= 18) {
+      clearInterval(timer);
+      setTimeout(() => { popup.style.display = 'none'; cb(); }, 200);
+      return;
+    }
+    const seg = document.createElement('div');
+    seg.style.cssText = 'width:11px;height:14px;background:#000080;flex-shrink:0;';
+    segs.appendChild(seg);
+    count++;
+  }, 150);
+}
+function showWinPopup()  { showLoadingPopup(() => { document.getElementById('xp-win').style.display  = 'flex'; }); }
+function showLosePopup() { showLoadingPopup(() => { document.getElementById('xp-lose').style.display = 'flex'; }); }
+
+// --- QUIZ ---
+let pIdx = 0, pScore = 0, pAnswered = false;
+
+function noobSlider() {
+  document.getElementById('wager-grid').style.display = 'none';
+  document.getElementById('wager-doggo').style.display = 'block';
+  document.querySelectorAll('.wslider').forEach(s => s.disabled = true);
+}
+
+function startQuizFromWager() {
+  pIdx = 0; pScore = 0; pAnswered = false;
+  pQuestions.forEach(q => { if (q.img) { const img = new Image(); img.src = q.img; } });
+  goTo('quiz-area');
+  renderPQuestion();
+}
+
+function renderPQuestion() {
+  if (pIdx >= pQuestions.length) {
+    goTo('score-screen');
+    document.getElementById('final-score').textContent = pScore;
+    const comments = ['did you even try.', 'this is embarrassing.', 'mediocre. we need to talk.', 'not bad, noob. not bad at all.', 'not bad, noob. not bad at all.', 'perfect score. suspicious.'];
+    document.getElementById('score-comment').textContent = comments[Math.round(pScore / 20)];
+    return;
+  }
+  pAnswered = false;
+  const q = pQuestions[pIdx];
+  document.getElementById('q-category').textContent = q.category;
+  document.getElementById('q-score-badge').textContent = pScore;
+  document.getElementById('q-text').textContent = q.q;
+  const note = document.getElementById('q-category-note');
+  note.style.display = q.note ? 'block' : 'none';
+  if (q.note) note.textContent = q.note;
+  const dots = document.getElementById('q-dots');
+  dots.innerHTML = '';
+  for (let d = 0; d < pQuestions.length; d++) {
+    const dot = document.createElement('div');
+    dot.style.cssText = 'width:10px;height:10px;border-radius:50%;background:' + (d === pIdx ? '#111' : '#ddd') + ';';
+    dots.appendChild(dot);
+  }
+  document.getElementById('q-options').innerHTML = q.opts.map((o, i) =>
+    '<button id="pqbtn-' + i + '" onclick="pickPQ(' + i + ')" style="background:#fff;border:1px solid #ddd;color:#111;font-family:Arial,sans-serif;font-size:0.9rem;padding:16px 18px;cursor:pointer;text-align:left;font-weight:400;border-radius:2px;"><strong>' + OPT_LABELS[i] + '.</strong> ' + o + '</button>'
+  ).join('');
+}
+
+function pickPQ(i) {
+  if (pAnswered) return;
+  pAnswered = true;
+  const q = pQuestions[pIdx];
+  for (let j = 0; j < q.opts.length; j++) {
+    const b = document.getElementById('pqbtn-' + j);
+    if (!b) continue;
+    b.disabled = true;
+    if      (j === q.correct) { b.style.background = '#111';    b.style.border = '1px solid #111';    b.style.color = '#fff'; }
+    else if (j === i)         { b.style.background = '#e84040'; b.style.border = '1px solid #e84040'; b.style.color = '#fff'; }
+    else                      { b.style.background = '#f5f5f5'; b.style.color = '#aaa'; }
+  }
+  const correct = i === q.correct;
+  if (correct) pScore += 20;
+  setTimeout(() => showExplanation(q, correct), 600);
+}
+
+function showExplanation(q, correct) {
+  goTo('quiz-explanation');
+  document.getElementById('exp-score-badge').textContent = pScore;
+  const dots = document.getElementById('exp-dots');
+  dots.innerHTML = '';
+  for (let d = 0; d < pQuestions.length; d++) {
+    const dot = document.createElement('div');
+    dot.style.cssText = 'width:10px;height:10px;border-radius:50%;background:' + (d < pIdx ? '#00635a' : d === pIdx ? '#111' : '#ddd') + ';';
+    dots.appendChild(dot);
+  }
+  const imgWrap = document.getElementById('exp-img-wrap');
+  const imgEl = document.getElementById('exp-img');
+  if (q.img) { imgEl.src = q.img; imgWrap.style.display = 'block'; }
+  else imgWrap.style.display = 'none';
+  document.getElementById('exp-answer-banner').textContent = OPT_LABELS[q.correct] + '. ' + q.opts[q.correct];
+  const pct = pIdx === 4 ? 1 : Math.floor(Math.random() * 25) + (correct ? 55 : 35);
+  document.getElementById('exp-bar-label').textContent = pct + '% of people got this right';
+  setTimeout(() => { document.getElementById('exp-bar').style.width = pct + '%'; }, 100);
+  document.getElementById('exp-text').innerHTML = (correct
+    ? '<span style="color:#00635a;font-weight:700;">\u2713 correct.</span> '
+    : '<span style="color:#e84040;font-weight:700;">\u2717 wrong.</span> ')
+    + q.fb.replace(/\n/g, '<br><br>');
+}
+
+function nextPQuestion() {
+  pIdx++;
+  goTo('quiz-area');
+  renderPQuestion();
+}
+
+// --- PHOTO STACK ---
+const PHOTO_COUNT = 16;
+let photoStack = [];
+
+function startPhotoStack() {
+  photoStack = Array.from({ length: PHOTO_COUNT }, (_, i) => PHOTO_COUNT - i);
+  show('photo-stack-screen');
+  document.getElementById('photo-stack').style.opacity = '0';
+  document.getElementById('stack-hint').style.opacity = '0';
+
+  let loaded = 0;
+  const total = PHOTO_COUNT + 1;
+
+  function onLoad() {
+    loaded++;
+    if (loaded === total) {
+      renderStack();
+      document.getElementById('photo-stack').style.transition = 'opacity 0.4s';
+      document.getElementById('stack-hint').style.transition = 'opacity 0.4s';
+      document.getElementById('photo-stack').style.opacity = '1';
+      document.getElementById('stack-hint').style.opacity = '1';
+    }
+  }
+
+  photoStack.forEach(n => {
+    const img = new Image();
+    img.onload = img.onerror = onLoad;
+    img.src = 'images/Schnoobs' + n + '.jpeg';
+  });
+  const ticket = new Image();
+  ticket.onload = ticket.onerror = onLoad;
+  ticket.src = 'images/Schnoobs17.png';
+}
+
+function renderStack() {
+  const container = document.getElementById('photo-stack');
+  container.innerHTML = '';
+
+  if (photoStack.length === 0) {
+    container.onclick = null;
+    const note = document.createElement('div');
+    note.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:520px;overflow:hidden;transform:rotate(-2deg);z-index:1;background:#fefde8;padding:1.5rem 1.25rem 1rem;box-shadow:2px 4px 12px rgba(0,0,0,0.2);clip-path:polygon(0% 3%,2% 0%,4% 2%,6% 0%,8% 3%,10% 1%,12% 3%,14% 0%,16% 2%,18% 0%,20% 3%,22% 1%,24% 3%,26% 0%,28% 2%,30% 0%,32% 3%,34% 1%,36% 2%,38% 0%,40% 3%,42% 1%,44% 2%,46% 0%,48% 3%,50% 1%,52% 2%,54% 0%,56% 3%,58% 1%,60% 2%,62% 0%,64% 3%,66% 1%,68% 2%,70% 0%,72% 3%,74% 1%,76% 2%,78% 0%,80% 3%,82% 1%,84% 2%,86% 0%,88% 3%,90% 1%,92% 2%,94% 0%,96% 3%,98% 1%,100% 2%,100% 100%,0% 100%);';
+
+    const ticket = document.createElement('img');
+    ticket.src = 'images/Schnoobs17.png';
+    ticket.alt = '';
+    ticket.style.cssText = 'width:100%;display:block;margin-bottom:1rem;';
+    note.appendChild(ticket);
+
+    const q = document.createElement('p');
+    q.textContent = 'wanna go look at ugly fish with me once more?';
+    q.style.cssText = 'font-size:1.3rem;line-height:1.5;color:#333;margin-bottom:1rem;font-family:Caveat,cursive;';
+    note.appendChild(q);
+
+    const opts = document.createElement('div');
+    opts.style.cssText = 'display:flex;flex-direction:column;gap:0.6rem;';
+    [['yes', 'yes', 'check-yes'], ['ja genau', 'ja', 'check-ja']].forEach(([label, choice, id]) => {
+      const row = document.createElement('label');
+      row.style.cssText = 'display:flex;align-items:center;gap:0.6rem;cursor:pointer;font-size:1.2rem;color:#333;font-family:Caveat,cursive;';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = id;
+      cb.style.cssText = 'width:15px;height:15px;cursor:pointer;accent-color:#333;flex-shrink:0;';
+      cb.onclick = () => noteAnswer(choice);
+      row.appendChild(cb);
+      row.appendChild(document.createTextNode(label));
+      opts.appendChild(row);
+    });
+    note.appendChild(opts);
+    container.appendChild(note);
+    document.getElementById('stack-hint').textContent = '';
+    return;
+  }
+
+  photoStack.forEach((num, i) => {
+    const isTop = i === photoStack.length - 1;
+    const rotate  = ((num * 37) % 13) - 6;
+    const offsetX = ((num * 53) % 20) - 10;
+    const offsetY = ((num * 71) % 16) - 8;
+    const img = document.createElement('img');
+    img.src = 'images/Schnoobs' + num + '.jpeg';
+    img.alt = '';
+    img.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:380px;object-fit:cover;border-radius:4px;box-shadow:2px 4px 16px rgba(0,0,0,0.25);transform:rotate(' + (isTop ? rotate : rotate * 0.7) + 'deg) translate(' + offsetX + 'px,' + offsetY + 'px);z-index:' + (i + 2) + ';';
+    container.appendChild(img);
+  });
+
+  document.getElementById('stack-hint').textContent = photoStack.length > 1 ? 'click to peel away (' + photoStack.length + ' left)' : 'one more...';
+}
+
+function removeTopPhoto() {
+  if (photoStack.length === 0) return;
+  photoStack.pop();
+  renderStack();
+}
+
+function noteAnswer(choice) {
+  document.getElementById('check-yes').disabled = true;
+  document.getElementById('check-ja').disabled  = true;
+  if (choice === 'yes') { document.getElementById('check-yes').checked = true; document.getElementById('check-ja').checked  = false; }
+  else                  { document.getElementById('check-ja').checked  = true; document.getElementById('check-yes').checked = false; }
+  setTimeout(() => show('s-end'), 800);
+}
+</script>
+</body>
+</html>
